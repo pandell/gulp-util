@@ -4,21 +4,38 @@ var path = require('path');
 require('mocha');
 
 describe('log()', function(){
-  it('should work i guess', function(done){
-    var writtenValue;
+
+  var writtenValue, stdout_write, time;
+
+  var emulateLogged = function(time, str) {
+    return '[' + util.colors.grey(time) + '] '+str+'\n'
+  }
+
+  beforeEach(function() {
+    // console.log("in before");
+    time = util.date(new Date(), 'HH:MM:ss');
 
     // Stub process.stdout.write
-    var stdout_write = process.stdout.write;
+    stdout_write = process.stdout.write;
     process.stdout.write = function(value) {
       writtenValue = value;
     };
+  });
 
+  it('should work i guess', function(done){
     util.log(1, 2, 3, 4, 'five');
-    var time = util.date(new Date(), 'HH:MM:ss');
-    writtenValue.should.eql('[' + util.colors.grey(time) + '] 1 2 3 4 five\n');
+    writtenValue.should.eql(emulateLogged(time, '1 2 3 4 five'));
 
     // Restore process.stdout.write
     process.stdout.write = stdout_write;
+    done();
+  });
+
+  it('should interpolate sprintf characters', function(done) {
+    util.log("%s", 'hello');
+    writtenValue.should.eql(emulateLogged(time, 'hello'));
+    process.stdout.write = stdout_write;
+    // console.log('after', writtenValue);
     done();
   });
 });
